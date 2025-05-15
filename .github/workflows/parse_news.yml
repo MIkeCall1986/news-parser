@@ -1,8 +1,8 @@
 name: Parse News
 on:
   schedule:
-    - cron: '06***'  # Щодня о 06:00 UTC
-  workflow_dispatch:  # Ручний запуск
+    - cron: '0 6 * * *'  # Виправлено: щодня о 06:00 UTC (09:00 EEST)
+  workflow_dispatch:  # Дозволяє запуск вручну
 jobs:
   parse-news:
     runs-on: ubuntu-latest
