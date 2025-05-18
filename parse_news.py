@@ -37,12 +37,19 @@ def parse_news():
         try:
             print(f"Парсимо {site['name']}...")
             response = requests.get(site['url'], headers=headers, timeout=15)
+            print(f"HTTP статус відповіді {site['name']}: {response.status_code}")
+            if response.status_code != 200:
+                print(f"⚠️ Помилка: {site['name']} повернув неуспішний код {response.status_code}!")
+                if "Access Denied" in response.text or "Cloudflare" in response.text.lower():
+                    print(f"⚠️ {site['name']} заблокував запит (Cloudflare або антибот захист)")
+                logging.error(f"{site['name']} повернув код {response.status_code}")
+                continue
             response.raise_for_status()
             time.sleep(2)
 
             soup = BeautifulSoup(response.text, 'html.parser')
-            articles = soup.select(site['selector'])[:2]  # Беремо 2 новини
-
+            articles = soup.select(site['selector'])[:2]
+            print(f"Знайдено статей для {site['name']}: {len(articles)}")
             if not articles:
                 raise ValueError(f"Не знайдено статей за селектором: {site['selector']}")
 
@@ -61,10 +68,11 @@ def parse_news():
                 print(f"- {title[:60]}...")
 
         except Exception as e:
-            logging.error(f"Помилка у {site['name']}: {str(e)}")
             print(f"Помилка у {site['name']}: {str(e)}")
+            logging.error(f"Помилка у {site['name']}: {str(e)}")
             continue
 
+    print(f"Зібрано новин: {len(all_news)}")
     os.makedirs("docs", exist_ok=True)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(all_news, f, ensure_ascii=False, indent=2)
