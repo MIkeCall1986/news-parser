@@ -1,0 +1,32 @@
+name: Parse News
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Щодня о 06:00 UTC
+  workflow_dispatch:  # Ручний запуск
+jobs:
+  parse-news:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
+      - name: Run parser
+        run: python parse_news.py
+      - name: Commit and push JSON
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add docs/news.json
+          git commit -m 'Update news.json' || echo "No changes to commit"
+          git push
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
