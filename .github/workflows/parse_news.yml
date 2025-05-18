@@ -33,12 +33,16 @@ jobs:
           cat docs/news.json
           git commit -m 'Update news.json' || echo "No changes to commit"
           git push
-      - name: Create .nojekyll
-        run: touch docs/.nojekyll
+      - name: Prepare docs directory
+        run: |
+          mkdir -p docs
+          mv docs/news.json docs/ || echo "news.json not found, ensuring it exists"
+          touch docs/.nojekyll
+          ls -la docs/
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
           publish_branch: gh-pages
-          force_orphan: true
+          keep_files: true  # Зберігає існуючі файли в gh-pages
