@@ -1,0 +1,6 @@
+theme: none  # Відключаємо тему
+include:
+  - news.json  # Включаємо news.json
+exclude:
+  - assets/css/style.scss  # Виключаємо SCSS
+plugins: []  # Відключаємо плагіни
