@@ -1,13 +1,21 @@
 name: Parse News
 on:
   schedule:
-    - cron: '0 6 * * *'  # Щодня о 06:00 UTC
-  workflow_dispatch:  # Ручний запуск
+    - cron: '0 6 * * *'  # Щодня о 06:00 UTC (09:00 EEST)
+  workflow_dispatch:  # Дозволяє запуск вручну
+permissions:
+  contents: write  # Права на коміт і пуш
+concurrency:
+  group: pages
+  cancel-in-progress: false
 jobs:
   parse-news:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Повна історія для git pull
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -18,15 +26,27 @@ jobs:
           pip install requests beautifulsoup4
       - name: Run parser
         run: python parse_news.py
+      - name: Create .nojekyll
+        run: |
+          mkdir -p docs
+          touch docs/.nojekyll
+      - name: Check docs directory
+        run: |
+          echo "Перевірка вмісту docs/:"
+          ls -la docs/
+          cat docs/news.json
       - name: Commit and push JSON
         run: |
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
-          git add docs/news.json
-          git commit -m 'Update news.json' || echo "No changes to commit"
-          git push
+          git fetch origin main
+          git pull origin main --rebase
+          git add docs/
+          git commit -m 'Update news.json and .nojekyll' || echo "No changes to commit"
+          git push origin main
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
+          force_orphan: true
