@@ -26,7 +26,12 @@ jobs:
         run: |
           python parse_news.py
           echo "Перевірка вмісту news.json після парсингу:"
-          cat news.json || echo "Файл news.json не створено"
+          if [ -f news.json ]; then
+            cat news.json
+          else
+            echo "Файл news.json не створено, створюємо порожній"
+            echo "[]" > news.json
+          fi
       - name: Commit and push to main
         run: |
           git config --global user.name 'GitHub Action'
