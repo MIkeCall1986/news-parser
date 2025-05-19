@@ -95,7 +95,7 @@ def parse_news():
             continue
 
     print(f"Всього зібрано новин: {len(all_news)}")
-    os.makedirs("docs", exist_ok=True)
+    os.makedirs(".", exist_ok=True)
     try:
         with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
             json.dump(all_news, f, ensure_ascii=False, indent=2)
