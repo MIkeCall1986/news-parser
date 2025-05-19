@@ -2,9 +2,9 @@ name: Parse News
 on:
   schedule:
     - cron: '0 6 * * *'  # Щодня о 06:00 UTC (09:00 EEST)
-  workflow_dispatch:  # Дозволяє запуск вручну
+  workflow_dispatch:
 permissions:
-  contents: write  # Для коміту в main і пушу в gh-pages
+  contents: write
 concurrency:
   group: parse-news
   cancel-in-progress: false
@@ -25,31 +25,31 @@ jobs:
       - name: Run parser
         run: |
           python parse_news.py
-          echo "Перевірка вмісту docs/news.json після парсингу:"
-          cat docs/news.json || echo "Файл docs/news.json не створено"
+          echo "Перевірка вмісту news.json після парсингу:"
+          cat news.json || echo "Файл news.json не створено"
       - name: Commit and push to main
         run: |
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
-          git add docs/news.json
+          git add news.json
           echo "Вміст news.json перед комітом:"
-          cat docs/news.json
+          cat news.json
           git commit -m 'Update news.json' || echo "No changes to commit"
           git push
-      - name: Prepare docs directory
+      - name: Prepare files for deploy
         run: |
-          mkdir -p docs
-          mv docs/news.json docs/news.json || echo "news.json не знайдено, створюємо порожній"
-          [ -f docs/news.json ] || echo "[]" > docs/news.json
-          touch docs/.nojekyll
-          echo "Вміст папки docs перед деплоєм:"
-          ls -la docs/
-          echo "Вміст docs/news.json:"
-          cat docs/news.json
+          mkdir -p deploy
+          mv news.json deploy/news.json || echo "news.json не знайдено, створюємо порожній"
+          [ -f deploy/news.json ] || echo "[]" > deploy/news.json
+          touch deploy/.nojekyll
+          echo "Вміст папки deploy перед деплоєм:"
+          ls -la deploy/
+          echo "Вміст deploy/news.json:"
+          cat deploy/news.json
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          publish_dir: ./deploy
           publish_branch: gh-pages
-          keep_files: true  # Зберігає існуючі файли в gh-pages
+          keep_files: true
